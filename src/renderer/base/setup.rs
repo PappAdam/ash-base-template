@@ -2,7 +2,6 @@ use std::ffi::{c_char, CStr};
 
 use ash::extensions::{ext, khr};
 use ash::vk::{self};
-use gpu_allocator::vulkan;
 use raw_window_handle::{HasRawDisplayHandle, HasRawWindowHandle};
 
 use crate::renderer::utils::vulkan_debug_callback;
@@ -250,15 +249,10 @@ pub fn get_physical_device<'a>(
         Err(_) => return Err(String::from("failed to enumerate physical devices")),
     };
 
-    for &physical_device in &devices {
-        let properties = unsafe { instance.get_physical_device_properties(physical_device) };
-        let device_name = unsafe { std::ffi::CStr::from_ptr(properties.device_name.as_ptr()) };
-    }
-
     for physical_device in devices {
         let properties = unsafe { instance.get_physical_device_properties(physical_device) };
 
-        if let Err(msg) = check_device_suitability(
+        if let Err(_) = check_device_suitability(
             instance,
             physical_device,
             required_device_extensions,
@@ -432,33 +426,33 @@ pub fn create_logical_device<'a>(
     return Ok(device);
 }
 
-pub fn create_allocator(
-    instance: &ash::Instance,
-    device: &ash::Device,
-    physical_device: vk::PhysicalDevice,
-) -> Result<vulkan::Allocator, String> {
-    let debug_settings = gpu_allocator::AllocatorDebugSettings {
-        log_memory_information: true,
-        log_leaks_on_shutdown: true,
-        store_stack_traces: false,
-        log_allocations: true,
-        log_frees: true,
-        log_stack_traces: false,
-    };
+// pub fn create_allocator(
+//     instance: &ash::Instance,
+//     device: &ash::Device,
+//     physical_device: vk::PhysicalDevice,
+// ) -> Result<vulkan::Allocator, String> {
+//     let debug_settings = gpu_allocator::AllocatorDebugSettings {
+//         log_memory_information: true,
+//         log_leaks_on_shutdown: true,
+//         store_stack_traces: false,
+//         log_allocations: true,
+//         log_frees: true,
+//         log_stack_traces: false,
+//     };
 
-    let create_info = &vulkan::AllocatorCreateDesc {
-        instance: instance.clone(),
-        device: device.clone(),
-        physical_device,
-        debug_settings,
-        buffer_device_address: false,
-    };
+//     let create_info = &vulkan::AllocatorCreateDesc {
+//         instance: instance.clone(),
+//         device: device.clone(),
+//         physical_device,
+//         debug_settings,
+//         buffer_device_address: false,
+//     };
 
-    let allocator = vulkan::Allocator::new(&create_info)
-        .map_err(|_| String::from("failed to create allocator"))?;
+//     let allocator = vulkan::Allocator::new(&create_info)
+//         .map_err(|_| String::from("failed to create allocator"))?;
 
-    Ok(allocator)
-}
+//     Ok(allocator)
+// }
 
 pub fn create_debug_call_back(
     debug_utils_loader: &ext::DebugUtils,

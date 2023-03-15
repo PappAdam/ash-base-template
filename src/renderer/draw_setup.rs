@@ -1,12 +1,10 @@
-use std::fmt::format;
-
 use ash::vk;
 
 use super::Renderer;
 
 impl Renderer {
-    #[inline]
-    pub fn record_command_buffer() {}
+    // #[inline]
+    // pub fn record_command_buffer() {}
 
     #[inline]
     pub fn begin_render_pass(&self) {
@@ -35,7 +33,7 @@ impl Renderer {
     }
 
     #[inline]
-    pub fn begin_command_buffer(&self) -> Result<(), String> {
+    pub fn begin_command_buffer(&self) {
         let begin_info = vk::CommandBufferBeginInfo::builder()
             .flags(vk::CommandBufferUsageFlags::ONE_TIME_SUBMIT)
             .build();
@@ -47,10 +45,9 @@ impl Renderer {
                     self.data.command_buffers[self.current_frame_index],
                     &begin_info,
                 )
-                .map_err(|_| String::from("failed to begin command buffer"))?;
+                .map_err(|_| String::from("failed to begin command buffer"))
+                .unwrap();
         }
-
-        Ok(())
     }
 
     #[inline]
@@ -101,6 +98,7 @@ impl Renderer {
 
         Ok(true)
     }
+
     #[inline]
     pub fn set_scissor(&self) {
         let scissor = vk::Rect2D {
@@ -119,6 +117,7 @@ impl Renderer {
             );
         }
     }
+
     #[inline]
     pub fn set_viewport(&self) {
         let viewport = vk::Viewport {

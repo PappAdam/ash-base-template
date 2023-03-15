@@ -2,7 +2,7 @@ pub mod buffer;
 
 use ash::vk;
 
-use super::utils::{self, MAX_FRAME_DRAWS};
+use super::utils::MAX_FRAME_DRAWS;
 
 pub fn create_render_pass(
     device: &ash::Device,
@@ -100,9 +100,6 @@ pub fn create_pipelines(
         .build();
 
     let states = [vk::DynamicState::VIEWPORT, vk::DynamicState::SCISSOR];
-    let dyn_state = vk::PipelineDynamicStateCreateInfo::builder()
-        .dynamic_states(&states)
-        .build();
 
     let viewports = [vk::Viewport {
         ..Default::default()
@@ -121,6 +118,8 @@ pub fn create_pipelines(
 
     let stages = [vs_state, fs_state];
 
+    let dynamic_state_info = vk::PipelineDynamicStateCreateInfo::builder().dynamic_states(&states);
+
     let vert_inp_state = vk::PipelineVertexInputStateCreateInfo::builder().build();
 
     let solid_pipeline_create_info = vk::GraphicsPipelineCreateInfo::builder()
@@ -129,20 +128,13 @@ pub fn create_pipelines(
         .input_assembly_state(&ia_state)
         .rasterization_state(&raster_state)
         .color_blend_state(&col_blend_state)
-        .dynamic_state(&dyn_state)
         .viewport_state(&viewport_state)
         .layout(pipeline_layout)
+        .dynamic_state(&dynamic_state_info)
         .render_pass(render_pass)
         .subpass(0)
         .multisample_state(&multisample_state)
         .vertex_input_state(&vert_inp_state)
-        .build();
-
-    let raster_state = vk::PipelineRasterizationStateCreateInfo::builder()
-        .polygon_mode(vk::PolygonMode::LINE)
-        .cull_mode(vk::CullModeFlags::NONE)
-        .front_face(vk::FrontFace::CLOCKWISE)
-        .line_width(1.0f32)
         .build();
 
     let pipelines = unsafe {
@@ -218,7 +210,7 @@ pub fn create_semaphore(
 ) -> Result<Vec<vk::Semaphore>, String> {
     let mut semaphores = Vec::<vk::Semaphore>::with_capacity(MAX_FRAME_DRAWS);
 
-    for i in 0..MAX_FRAME_DRAWS {
+    for _ in 0..MAX_FRAME_DRAWS {
         let create_info = vk::SemaphoreCreateInfo::default();
 
         let semaphore = unsafe {
@@ -257,61 +249,61 @@ pub fn create_fences(device: &ash::Device) -> Result<Vec<vk::Fence>, String> {
     Ok(fences)
 }
 
-pub fn create_descriptor_set_layout(
-    device: &ash::Device,
-) -> Result<vk::DescriptorSetLayout, String> {
-    let control_points_binding = vk::DescriptorSetLayoutBinding::builder()
-        .binding(0)
-        .descriptor_type(vk::DescriptorType::STORAGE_BUFFER)
-        .descriptor_count(1)
-        .stage_flags(vk::ShaderStageFlags::VERTEX)
-        .build();
+// pub fn create_descriptor_set_layout(
+//     device: &ash::Device,
+// ) -> Result<vk::DescriptorSetLayout, String> {
+//     let control_points_binding = vk::DescriptorSetLayoutBinding::builder()
+//         .binding(0)
+//         .descriptor_type(vk::DescriptorType::STORAGE_BUFFER)
+//         .descriptor_count(1)
+//         .stage_flags(vk::ShaderStageFlags::VERTEX)
+//         .build();
 
-    let bindings = [control_points_binding];
-    let create_info = vk::DescriptorSetLayoutCreateInfo::builder()
-        .bindings(&bindings)
-        .build();
+//     let bindings = [control_points_binding];
+//     let create_info = vk::DescriptorSetLayoutCreateInfo::builder()
+//         .bindings(&bindings)
+//         .build();
 
-    let descriptor_set_layout = unsafe {
-        device
-            .create_descriptor_set_layout(&create_info, None)
-            .map_err(|_| String::from("failed to create descriptor set layout"))?
-    };
+//     let descriptor_set_layout = unsafe {
+//         device
+//             .create_descriptor_set_layout(&create_info, None)
+//             .map_err(|_| String::from("failed to create descriptor set layout"))?
+//     };
 
-    Ok(descriptor_set_layout)
-}
+//     Ok(descriptor_set_layout)
+// }
 
-pub fn create_descriptor_pools(device: &ash::Device) -> Result<Vec<vk::DescriptorPool>, String> {
-    let pool_size_1 = vk::DescriptorPoolSize {
-        ty: vk::DescriptorType::UNIFORM_BUFFER,
-        descriptor_count: 100,
-    };
+// pub fn create_descriptor_pools(device: &ash::Device) -> Result<Vec<vk::DescriptorPool>, String> {
+//     let pool_size_1 = vk::DescriptorPoolSize {
+//         ty: vk::DescriptorType::UNIFORM_BUFFER,
+//         descriptor_count: 100,
+//     };
 
-    let sizes = [pool_size_1];
-    let create_info = vk::DescriptorPoolCreateInfo::builder()
-        .max_sets(100)
-        .pool_sizes(&sizes)
-        .build();
+//     let sizes = [pool_size_1];
+//     let create_info = vk::DescriptorPoolCreateInfo::builder()
+//         .max_sets(100)
+//         .pool_sizes(&sizes)
+//         .build();
 
-    let mut descriptor_pools = Vec::with_capacity(MAX_FRAME_DRAWS as usize);
+//     let mut descriptor_pools = Vec::with_capacity(MAX_FRAME_DRAWS as usize);
 
-    for i in 0..MAX_FRAME_DRAWS {
-        let pool = unsafe {
-            device
-                .create_descriptor_pool(&create_info, None)
-                .map_err(|_| {
-                    for &p in &descriptor_pools {
-                        device.destroy_descriptor_pool(p, None);
-                    }
-                    format!("failed to create descriptor pool {}", i)
-                })?
-        };
+//     for i in 0..MAX_FRAME_DRAWS {
+//         let pool = unsafe {
+//             device
+//                 .create_descriptor_pool(&create_info, None)
+//                 .map_err(|_| {
+//                     for &p in &descriptor_pools {
+//                         device.destroy_descriptor_pool(p, None);
+//                     }
+//                     format!("failed to create descriptor pool {}", i)
+//                 })?
+//         };
 
-        descriptor_pools.push(pool);
-    }
+//         descriptor_pools.push(pool);
+//     }
 
-    Ok(descriptor_pools)
-}
+//     Ok(descriptor_pools)
+// }
 
 pub fn create_command_pool(
     device: &ash::Device,

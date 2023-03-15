@@ -1,8 +1,6 @@
 use ash::vk;
 use winit::window::Window;
 
-use crate::debug_message;
-
 use self::{base::RenderBase, data::RenderData, utils::MAX_FRAME_DRAWS};
 
 pub mod base;
@@ -23,7 +21,7 @@ pub struct Renderer {
 impl Renderer {
     pub fn new(window: &Window) -> Result<Self, String> {
         let mut base = RenderBase::new(window)?;
-        let mut data = RenderData::new(&mut base)?;
+        let data = RenderData::new(&mut base)?;
 
         Ok(Self {
             base,
@@ -56,10 +54,11 @@ impl Renderer {
                 .unwrap();
         }
 
-        self.begin_command_buffer()?;
+        self.begin_command_buffer();
         self.begin_render_pass();
         self.set_viewport();
         self.set_scissor();
+
         unsafe {
             self.base
                 .device
@@ -76,6 +75,27 @@ impl Renderer {
             self.rebuild_swapchain = true;
             return Ok(());
         }
+
+        self.current_frame_index = (self.current_frame_index + 1) % MAX_FRAME_DRAWS;
+
         Ok(())
+    }
+
+    #[inline]
+    pub fn resize(&mut self, window: &Window) -> Result<(), String> {
+        self.base.resize(window)?;
+        self.data.resize(&self.base)?;
+
+        Ok(())
+    }
+}
+
+impl Drop for Renderer {
+    fn drop(&mut self) {
+        unsafe {
+            let _ = self.base.device.device_wait_idle();
+            self.data.clean_up(&self.base.device);
+            self.base.clean_up();
+        }
     }
 }

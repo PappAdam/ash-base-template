@@ -9,9 +9,9 @@ use crate::renderer::base::setup::{
 };
 
 use self::setup::{
-    create_allocator, create_debug_call_back, create_instance, create_logical_device,
-    create_surface, get_physical_device, get_present_mode, get_queue_family,
-    get_required_instance_extensions, get_surface_format,
+    create_debug_call_back, create_instance, create_logical_device, create_surface,
+    get_physical_device, get_present_mode, get_queue_family, get_required_instance_extensions,
+    get_surface_format,
 };
 
 pub struct RenderBase {
@@ -31,7 +31,6 @@ pub struct RenderBase {
     pub queue_family: u32,
     pub device: ash::Device,
     pub queue: vk::Queue,
-    pub allocator: gpu_allocator::vulkan::Allocator,
     pub surface_capabilities: vk::SurfaceCapabilitiesKHR,
     pub surface_extent: vk::Extent2D,
     pub swapchain: vk::SwapchainKHR,
@@ -41,7 +40,7 @@ pub struct RenderBase {
 
 impl RenderBase {
     pub fn new(window: &winit::window::Window) -> Result<Self, String> {
-        let entry = ash::Entry::linked();
+        let entry = unsafe { ash::Entry::load().map_err(|msg| format!("{}", msg))? };
         let instance_extensions = get_required_instance_extensions(window).unwrap();
         let device_extensions = vec![ash::extensions::khr::Swapchain::name()];
 
@@ -67,8 +66,6 @@ impl RenderBase {
             create_logical_device(&instance, physical_device, queue_family, &device_extensions)?;
 
         let queue = unsafe { device.get_device_queue(queue_family, 0) };
-
-        let allocator = create_allocator(&instance, &device, physical_device)?;
 
         let swapchain_loader = khr::Swapchain::new(&instance, &device);
 
@@ -102,7 +99,6 @@ impl RenderBase {
             present_mode,
             queue_family,
             queue,
-            allocator,
             surface_capabilities: resize_data.surface_capabilities,
             surface_extent: resize_data.surface_extent,
             swapchain: resize_data.swapchain,
@@ -135,6 +131,21 @@ impl RenderBase {
         self.swapchain_image_views = resize_data.swapchain_image_views;
 
         Ok(())
+    }
+
+    pub fn clean_up(&self) {
+        unsafe {
+            self.swapchain_loader
+                .destroy_swapchain(self.swapchain, None);
+            for &image_view in &self.swapchain_image_views {
+                self.device.destroy_image_view(image_view, None);
+            }
+            self.device.destroy_device(None);
+            self.surface_loader.destroy_surface(self.surface, None);
+            #[cfg(debug_assertions)]
+            self.debug_utils_loader
+                .destroy_debug_utils_messenger(self.debug_call_back, None);
+        }
     }
 }
 

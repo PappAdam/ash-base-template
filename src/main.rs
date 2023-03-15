@@ -1,4 +1,4 @@
-use renderer::{utils::MAX_FRAME_DRAWS, Renderer};
+use renderer::Renderer;
 use winit::{
     event::{Event, WindowEvent},
     event_loop::ControlFlow,
@@ -49,25 +49,11 @@ fn main() {
             } => {
                 *control_flow = ControlFlow::Exit;
             }
-            Event::MainEventsCleared => {
-                if window.inner_size().width == 0 && window.inner_size().height == 0 {
-                    return;
-                }
 
+            Event::MainEventsCleared => {
                 if renderer.rebuild_swapchain {
                     renderer.rebuild_swapchain = false;
-
-                    if let Err(msg) = renderer.base.resize(&window) {
-                        debug_message!(error, msg);
-                        *control_flow = ControlFlow::Exit;
-                        return;
-                    }
-
-                    if let Err(msg) = renderer.data.resize(&renderer.base) {
-                        debug_message!(error, msg);
-                        *control_flow = ControlFlow::Exit;
-                        return;
-                    }
+                    renderer.resize(&window).unwrap();
                 }
 
                 if let Err(msg) = renderer.draw() {
@@ -75,9 +61,8 @@ fn main() {
                     *control_flow = ControlFlow::Exit;
                     return;
                 }
-
-                renderer.current_frame_index = (renderer.current_frame_index + 1) % MAX_FRAME_DRAWS;
             }
+
             Event::WindowEvent {
                 event: WindowEvent::Resized(..),
                 ..

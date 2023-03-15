@@ -3,7 +3,7 @@ use ash::vk;
 
 use super::{
     base::RenderBase,
-    resources::{self, create_framebuffers},
+    resources::{self},
     utils::MAX_FRAME_DRAWS,
 };
 
@@ -96,7 +96,7 @@ impl RenderData {
             }
         }
 
-        self.framebuffers = create_framebuffers(
+        self.framebuffers = resources::create_framebuffers(
             &vulkan_base.device,
             &vulkan_base.swapchain_image_views,
             self.render_pass,
@@ -104,5 +104,29 @@ impl RenderData {
         )?;
 
         Ok(())
+    }
+
+    pub fn clean_up(&self, device: &ash::Device) {
+        unsafe {
+            device.destroy_shader_module(self.vertex_shader_module, None);
+            device.destroy_shader_module(self.fragment_shader_module, None);
+
+            device.destroy_pipeline_layout(self.pipeline_layout, None);
+
+            device.destroy_render_pass(self.render_pass, None);
+
+            device.destroy_pipeline(self.pipeline, None);
+
+            for &framebuffer in &self.framebuffers {
+                device.destroy_framebuffer(framebuffer, None);
+            }
+
+            for i in 0..MAX_FRAME_DRAWS {
+                device.destroy_semaphore(self.img_available_semaphores[i], None);
+                device.destroy_semaphore(self.render_finished_semaphores[i], None);
+                device.destroy_fence(self.fences[i], None);
+            }
+            device.destroy_command_pool(self.command_pool, None);
+        }
     }
 }
