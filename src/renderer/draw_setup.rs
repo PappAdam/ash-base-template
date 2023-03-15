@@ -1,3 +1,5 @@
+use std::fmt::format;
+
 use ash::vk;
 
 use super::Renderer;
@@ -57,13 +59,13 @@ impl Renderer {
             self.base.swapchain_loader.acquire_next_image(
                 self.base.swapchain,
                 u64::MAX,
-                self.data.img_available_semaphore,
+                self.data.img_available_semaphores[self.current_frame_index],
                 vk::Fence::null(),
             )
         } {
             Ok((index, is_suboptimal)) => (index, is_suboptimal),
             Err(vk::Result::ERROR_OUT_OF_DATE_KHR) => return Ok(None),
-            Err(_) => return Err(String::from("failed to acquire next image")),
+            Err(message) => return Err(format!("{}", message)),
         };
 
         if is_suboptimal {
@@ -74,7 +76,7 @@ impl Renderer {
     }
     #[inline]
     pub fn present(&self) -> Result<bool, String> {
-        let semaphores = [self.data.render_finished_semaphore];
+        let semaphores = [self.data.render_finished_semaphores[self.current_frame_index]];
         let swapchains = [self.base.swapchain];
         let indices = [self.image_index as u32];
         let present_info = vk::PresentInfoKHR::builder()
@@ -140,10 +142,10 @@ impl Renderer {
     pub fn submit(&self) -> Result<(), String> {
         let fence = self.data.fences[self.current_frame_index as usize];
 
-        let wait_semaphores = [self.data.img_available_semaphore];
+        let wait_semaphores = [self.data.img_available_semaphores[self.current_frame_index]];
         let masks = [vk::PipelineStageFlags::COLOR_ATTACHMENT_OUTPUT];
         let cmd_buffers = [self.data.command_buffers[self.current_frame_index]];
-        let signal_semaphores = [self.data.render_finished_semaphore];
+        let signal_semaphores = [self.data.render_finished_semaphores[self.current_frame_index]];
         let submit_info = vk::SubmitInfo::builder()
             .wait_semaphores(&wait_semaphores)
             .wait_dst_stage_mask(&masks)

@@ -28,7 +28,6 @@ fn main() {
     let window = winit::window::WindowBuilder::new()
         .with_title("HAHA")
         .with_inner_size(winit::dpi::LogicalSize::new(800.0, 600.0))
-        .with_min_inner_size(winit::dpi::PhysicalSize::new(100.0, 100.0))
         .build(&event_loop)
         .unwrap();
 
@@ -78,6 +77,12 @@ fn main() {
                 }
 
                 renderer.current_frame_index = (renderer.current_frame_index + 1) % MAX_FRAME_DRAWS;
+            }
+            Event::WindowEvent {
+                event: WindowEvent::Resized(..),
+                ..
+            } => {
+                renderer.rebuild_swapchain = true;
             }
             _ => {}
         }

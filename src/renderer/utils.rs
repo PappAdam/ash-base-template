@@ -3,7 +3,11 @@ use std::ffi::CStr;
 
 use ash::vk::{self, DebugUtilsMessageSeverityFlagsEXT};
 
+#[cfg(not(debug_assertions))]
 pub const MAX_FRAME_DRAWS: usize = 4;
+
+#[cfg(debug_assertions)]
+pub const MAX_FRAME_DRAWS: usize = 2;
 
 pub unsafe extern "system" fn vulkan_debug_callback(
     message_severity: vk::DebugUtilsMessageSeverityFlagsEXT,

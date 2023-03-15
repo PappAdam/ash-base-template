@@ -17,8 +17,8 @@ pub struct RenderData {
     pub render_pass: vk::RenderPass,
     pub pipeline: vk::Pipeline,
     pub framebuffers: Vec<vk::Framebuffer>,
-    pub img_available_semaphore: vk::Semaphore,
-    pub render_finished_semaphore: vk::Semaphore,
+    pub img_available_semaphores: Vec<vk::Semaphore>,
+    pub render_finished_semaphores: Vec<vk::Semaphore>,
     pub fences: Vec<vk::Fence>,
     pub command_pool: vk::CommandPool,
     pub command_buffers: Vec<vk::CommandBuffer>,
@@ -48,10 +48,10 @@ impl RenderData {
             base.surface_extent,
         )?;
 
-        let img_available_semaphore =
+        let img_available_semaphores =
             resources::create_semaphore(&base.device, "img available semaphore")?;
 
-        let render_finished_semaphore =
+        let render_finished_semaphores =
             resources::create_semaphore(&base.device, "rendering finished semaphore")?;
 
         let fences = resources::create_fences(&base.device)?;
@@ -80,8 +80,8 @@ impl RenderData {
             render_pass,
             pipeline,
             framebuffers,
-            img_available_semaphore,
-            render_finished_semaphore,
+            img_available_semaphores,
+            render_finished_semaphores,
             fences,
             command_pool,
             command_buffers,

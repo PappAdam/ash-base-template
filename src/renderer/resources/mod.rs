@@ -212,16 +212,25 @@ pub fn create_framebuffers(
     Ok(framebuffers)
 }
 
-pub fn create_semaphore(device: &ash::Device, object_name: &str) -> Result<vk::Semaphore, String> {
-    let create_info = vk::SemaphoreCreateInfo::default();
+pub fn create_semaphore(
+    device: &ash::Device,
+    object_name: &str,
+) -> Result<Vec<vk::Semaphore>, String> {
+    let mut semaphores = Vec::<vk::Semaphore>::with_capacity(MAX_FRAME_DRAWS);
 
-    let semaphore = unsafe {
-        device
-            .create_semaphore(&create_info, None)
-            .map_err(|_| format!("failed to create {}", object_name))?
-    };
+    for i in 0..MAX_FRAME_DRAWS {
+        let create_info = vk::SemaphoreCreateInfo::default();
 
-    Ok(semaphore)
+        let semaphore = unsafe {
+            device
+                .create_semaphore(&create_info, None)
+                .map_err(|_| format!("failed to create {}", object_name))?
+        };
+
+        semaphores.push(semaphore);
+    }
+
+    Ok(semaphores)
 }
 
 pub fn create_fences(device: &ash::Device) -> Result<Vec<vk::Fence>, String> {

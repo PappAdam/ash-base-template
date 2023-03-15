@@ -1,6 +1,8 @@
 use ash::vk;
 use winit::window::Window;
 
+use crate::debug_message;
+
 use self::{base::RenderBase, data::RenderData, utils::MAX_FRAME_DRAWS};
 
 pub mod base;
