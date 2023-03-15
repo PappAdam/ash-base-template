@@ -1,9 +1,7 @@
 use std::ffi::{c_char, CStr};
-use std::fmt::format;
 
-use ash::extensions::ext::DebugUtils;
 use ash::extensions::{ext, khr};
-use ash::vk::{self, DebugUtilsMessengerEXT};
+use ash::vk::{self};
 use gpu_allocator::vulkan;
 use raw_window_handle::{HasRawDisplayHandle, HasRawWindowHandle};
 
@@ -259,7 +257,6 @@ pub fn get_physical_device<'a>(
 
     for physical_device in devices {
         let properties = unsafe { instance.get_physical_device_properties(physical_device) };
-        let device_name = unsafe { std::ffi::CStr::from_ptr(properties.device_name.as_ptr()) };
 
         if let Err(msg) = check_device_suitability(
             instance,
@@ -511,11 +508,16 @@ pub fn create_instance<'a>(
         .map(|raw_name| raw_name.as_ptr())
         .collect();
 
-    let create_info = vk::InstanceCreateInfo::builder()
-        .enabled_extension_names(&extension_names_raw)
-        .enabled_layer_names(&layers_names_raw)
-        .application_info(&app_info)
-        .build();
+    let create_info = vk::InstanceCreateInfo {
+        p_application_info: &app_info,
+        enabled_extension_count: extension_names_raw.len() as u32,
+        pp_enabled_extension_names: extension_names_raw.as_ptr(),
+        #[cfg(debug_assertions)]
+        enabled_layer_count: layers_names_raw.len() as u32,
+        #[cfg(debug_assertions)]
+        pp_enabled_layer_names: layers_names_raw.as_ptr(),
+        ..Default::default()
+    };
 
     let instance = unsafe {
         entry

@@ -19,8 +19,9 @@ pub struct RenderBase {
     pub instance: ash::Instance,
     pub surface_loader: khr::Surface,
     pub swapchain_loader: khr::Swapchain,
-
+    #[cfg(debug_assertions)]
     pub debug_utils_loader: ext::DebugUtils,
+    #[cfg(debug_assertions)]
     pub debug_call_back: vk::DebugUtilsMessengerEXT,
     pub surface: vk::SurfaceKHR,
     pub physical_device: vk::PhysicalDevice,
@@ -46,7 +47,9 @@ impl RenderBase {
 
         let instance = create_instance(&entry, &instance_extensions);
 
+        #[cfg(debug_assertions)]
         let debug_utils_loader = ext::DebugUtils::new(&entry, &instance);
+        #[cfg(debug_assertions)]
         let debug_call_back = create_debug_call_back(&debug_utils_loader)?;
 
         let surface_loader = khr::Surface::new(&entry, &instance);
@@ -88,8 +91,11 @@ impl RenderBase {
             surface,
             surface_loader,
 
+            #[cfg(debug_assertions)]
             debug_utils_loader,
+            #[cfg(debug_assertions)]
             debug_call_back,
+
             physical_device,
             physical_device_properties,
             surface_format,

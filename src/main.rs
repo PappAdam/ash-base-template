@@ -1,4 +1,4 @@
-use renderer::{base::RenderBase, utils::MAX_FRAME_DRAWS, Renderer};
+use renderer::{utils::MAX_FRAME_DRAWS, Renderer};
 use winit::{
     event::{Event, WindowEvent},
     event_loop::ControlFlow,
@@ -13,6 +13,7 @@ fn main() {
         simplelog::TerminalMode::Mixed,
         simplelog::ColorChoice::Auto,
     )];
+
     if let Ok(file) = std::fs::File::create("log.txt") {
         loggers.push(simplelog::WriteLogger::new(
             simplelog::LevelFilter::Info,
@@ -34,7 +35,7 @@ fn main() {
     let mut renderer = match Renderer::new(&window) {
         Ok(base) => base,
         Err(err) => {
-            log::error!("{}", err);
+            debug_message!(error, err);
             panic!("{}", err);
         }
     };
@@ -57,26 +58,21 @@ fn main() {
                 if renderer.rebuild_swapchain {
                     renderer.rebuild_swapchain = false;
 
-                    log::info!("handling resize");
-
                     if let Err(msg) = renderer.base.resize(&window) {
-                        log::error!("{}", msg);
-                        // vulkan::vulkan_clean(&mut vk_base, &mut vk_data);
+                        debug_message!(error, msg);
                         *control_flow = ControlFlow::Exit;
                         return;
                     }
 
                     if let Err(msg) = renderer.data.resize(&renderer.base) {
-                        log::error!("{}", msg);
-                        // vulkan::vulkan_clean(&mut vk_base, &mut vk_data);
+                        debug_message!(error, msg);
                         *control_flow = ControlFlow::Exit;
                         return;
                     }
                 }
 
                 if let Err(msg) = renderer.draw() {
-                    log::error!("{}", msg);
-                    // vulkan::vulkan_clean(&mut vk_base, &mut vk_data);
+                    debug_message!(error, msg);
                     *control_flow = ControlFlow::Exit;
                     return;
                 }

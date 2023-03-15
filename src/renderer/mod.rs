@@ -15,6 +15,7 @@ pub struct Renderer {
 
     pub current_frame_index: usize,
     pub rebuild_swapchain: bool,
+    pub image_index: usize,
 }
 
 impl Renderer {
@@ -27,20 +28,32 @@ impl Renderer {
             data,
             current_frame_index: 0,
             rebuild_swapchain: true,
+            image_index: 0,
         })
     }
 
     #[inline]
     pub fn draw(&mut self) -> Result<(), String> {
-        let image_index = match self.get_img_index()? {
-            Some(index) => index,
+        self.wait_resource_available()?;
+
+        self.image_index = match self.get_img_index()? {
+            Some(index) => index as usize,
             None => {
                 self.rebuild_swapchain = true;
                 return Ok(());
             }
         };
 
-        self.wait_resource_available()?;
+        unsafe {
+            self.base
+                .device
+                .reset_command_buffer(
+                    self.data.command_buffers[self.current_frame_index],
+                    vk::CommandBufferResetFlags::default(),
+                )
+                .unwrap();
+        }
+
         self.begin_command_buffer()?;
         self.begin_render_pass();
         self.set_viewport();

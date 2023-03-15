@@ -1,7 +1,6 @@
 use std::borrow::Cow;
 use std::ffi::CStr;
 
-use ash::extensions::ext;
 use ash::vk::{self, DebugUtilsMessageSeverityFlagsEXT};
 
 pub const MAX_FRAME_DRAWS: usize = 4;
@@ -41,6 +40,18 @@ pub unsafe extern "system" fn vulkan_debug_callback(
     }
 
     vk::FALSE
+}
+
+#[macro_export]
+macro_rules! debug_message {
+    ($type:tt, $msg:expr) => {{
+        log::$type!(
+            "{{\n\tmessage: {}\n\tlocation: {}:{}\n}}",
+            $msg,
+            file!(),
+            line!()
+        );
+    }};
 }
 
 #[macro_export]

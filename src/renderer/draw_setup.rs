@@ -4,6 +4,9 @@ use super::Renderer;
 
 impl Renderer {
     #[inline]
+    pub fn record_command_buffer() {}
+
+    #[inline]
     pub fn begin_render_pass(&self) {
         let clear_color = vk::ClearColorValue {
             float32: [0.5f32, 0.5f32, 0.5f32, 1.0f32],
@@ -12,7 +15,7 @@ impl Renderer {
 
         let render_pass_begin_info = vk::RenderPassBeginInfo::builder()
             .render_pass(self.data.render_pass)
-            .framebuffer(self.data.framebuffers[self.current_frame_index])
+            .framebuffer(self.data.framebuffers[self.image_index])
             .render_area(vk::Rect2D {
                 offset: vk::Offset2D { x: 0, y: 0 },
                 extent: self.base.surface_extent,
@@ -47,6 +50,7 @@ impl Renderer {
 
         Ok(())
     }
+
     #[inline]
     pub fn get_img_index(&self) -> Result<Option<u32>, String> {
         let (index, is_suboptimal) = match unsafe {
@@ -72,7 +76,7 @@ impl Renderer {
     pub fn present(&self) -> Result<bool, String> {
         let semaphores = [self.data.render_finished_semaphore];
         let swapchains = [self.base.swapchain];
-        let indices = [self.current_frame_index as u32];
+        let indices = [self.image_index as u32];
         let present_info = vk::PresentInfoKHR::builder()
             .wait_semaphores(&semaphores)
             .swapchains(&swapchains)
