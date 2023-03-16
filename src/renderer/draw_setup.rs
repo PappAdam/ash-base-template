@@ -100,27 +100,19 @@ impl Renderer {
     }
 
     #[inline]
-    pub fn set_scissor(&self) {
-        let scissor = vk::Rect2D {
+    pub fn set_scissor(&mut self) {
+        self.data.scissor = vk::Rect2D {
             offset: vk::Offset2D { x: 0, y: 0 },
             extent: vk::Extent2D {
                 width: self.base.surface_extent.width,
                 height: self.base.surface_extent.height,
             },
         };
-
-        unsafe {
-            self.base.device.cmd_set_scissor(
-                self.data.command_buffers[self.current_frame_index],
-                0,
-                &[scissor],
-            );
-        }
     }
 
     #[inline]
-    pub fn set_viewport(&self) {
-        let viewport = vk::Viewport {
+    pub fn set_viewport(&mut self) {
+        self.data.viewport = vk::Viewport {
             x: 0.0,
             y: 0.0,
             width: self.base.surface_extent.width as f32,
@@ -128,14 +120,6 @@ impl Renderer {
             min_depth: 0.0f32,
             max_depth: 1.0f32,
         };
-
-        unsafe {
-            self.base.device.cmd_set_viewport(
-                self.data.command_buffers[self.current_frame_index],
-                0,
-                &[viewport],
-            );
-        }
     }
     #[inline]
     pub fn submit(&self) -> Result<(), String> {

@@ -1,1 +1,1 @@
-20:00:07 [INFO] Guessed window scale factor: 1
+15:30:16 [INFO] Guessed window scale factor: 1

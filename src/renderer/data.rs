@@ -16,6 +16,8 @@ pub struct RenderData {
     pub pipeline_layout: vk::PipelineLayout,
     pub render_pass: vk::RenderPass,
     pub pipeline: vk::Pipeline,
+    pub viewport: vk::Viewport,
+    pub scissor: vk::Rect2D,
     pub framebuffers: Vec<vk::Framebuffer>,
     pub img_available_semaphores: Vec<vk::Semaphore>,
     pub render_finished_semaphores: Vec<vk::Semaphore>,
@@ -40,6 +42,23 @@ impl RenderData {
             pipeline_layout,
             render_pass,
         )?;
+
+        let viewport = vk::Viewport {
+            x: 0.0,
+            y: 0.0,
+            width: base.surface_extent.width as f32,
+            height: base.surface_extent.height as f32,
+            min_depth: 0.0f32,
+            max_depth: 1.0f32,
+        };
+
+        let scissor = vk::Rect2D {
+            offset: vk::Offset2D { x: 0, y: 0 },
+            extent: vk::Extent2D {
+                width: base.surface_extent.width,
+                height: base.surface_extent.height,
+            },
+        };
 
         let framebuffers = resources::create_framebuffers(
             &base.device,
@@ -79,6 +98,8 @@ impl RenderData {
             pipeline_layout,
             render_pass,
             pipeline,
+            viewport,
+            scissor,
             framebuffers,
             img_available_semaphores,
             render_finished_semaphores,

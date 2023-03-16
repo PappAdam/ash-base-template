@@ -34,8 +34,6 @@ impl Renderer {
 
     #[inline]
     pub fn draw(&mut self) -> Result<(), String> {
-        self.wait_resource_available()?;
-
         self.image_index = match self.get_img_index()? {
             Some(index) => index as usize,
             None => {
@@ -44,6 +42,7 @@ impl Renderer {
             }
         };
 
+        self.wait_resource_available()?;
         unsafe {
             self.base
                 .device
@@ -60,6 +59,18 @@ impl Renderer {
         self.set_scissor();
 
         unsafe {
+            self.base.device.cmd_set_viewport(
+                self.data.command_buffers[self.current_frame_index],
+                0,
+                &[self.data.viewport],
+            );
+
+            self.base.device.cmd_set_scissor(
+                self.data.command_buffers[self.current_frame_index],
+                0,
+                &[self.data.scissor],
+            );
+
             self.base
                 .device
                 .cmd_end_render_pass(self.data.command_buffers[self.current_frame_index]);
@@ -83,6 +94,11 @@ impl Renderer {
 
     #[inline]
     pub fn resize(&mut self, window: &Window) -> Result<(), String> {
+        unsafe {
+            let _ = self.base.device.device_wait_idle();
+        }
+        self.set_scissor();
+        self.set_viewport();
         self.base.resize(window)?;
         self.data.resize(&self.base)?;
 

@@ -34,42 +34,41 @@ fn main() {
     let mut renderer = match Renderer::new(&window) {
         Ok(base) => base,
         Err(err) => {
-            debug_message!(error, err);
+            msg!(error, err);
             panic!("{}", err);
         }
     };
 
-    event_loop.run(move |event, _, control_flow| {
-        *control_flow = ControlFlow::Poll;
+    event_loop.run(move |event, _, control_flow| match event {
+        Event::WindowEvent {
+            event: WindowEvent::CloseRequested,
+            ..
+        } => {
+            *control_flow = ControlFlow::Exit;
+        }
 
-        match event {
-            Event::WindowEvent {
-                event: WindowEvent::CloseRequested,
-                ..
-            } => {
-                *control_flow = ControlFlow::Exit;
-            }
-
-            Event::MainEventsCleared => {
-                if renderer.rebuild_swapchain {
-                    renderer.rebuild_swapchain = false;
-                    renderer.resize(&window).unwrap();
-                }
-
-                if let Err(msg) = renderer.draw() {
-                    debug_message!(error, msg);
-                    *control_flow = ControlFlow::Exit;
+        Event::MainEventsCleared => {
+            if renderer.rebuild_swapchain {
+                renderer.rebuild_swapchain = false;
+                if let Err(msg) = renderer.resize(&window) {
+                    msg!(error, msg);
                     return;
                 }
             }
 
-            Event::WindowEvent {
-                event: WindowEvent::Resized(..),
-                ..
-            } => {
-                renderer.rebuild_swapchain = true;
+            if let Err(msg) = renderer.draw() {
+                msg!(error, msg);
+                *control_flow = ControlFlow::Exit;
+                return;
             }
-            _ => {}
         }
+
+        Event::WindowEvent {
+            event: WindowEvent::Resized(..),
+            ..
+        } => {
+            renderer.rebuild_swapchain = true;
+        }
+        _ => {}
     });
 }

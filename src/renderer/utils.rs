@@ -47,10 +47,10 @@ pub unsafe extern "system" fn vulkan_debug_callback(
 }
 
 #[macro_export]
-macro_rules! debug_message {
+macro_rules! msg {
     ($type:tt, $msg:expr) => {{
         log::$type!(
-            "{{\n\tmessage: {}\n\tlocation: {}:{}\n}}",
+            "{{\n\tmessage: {:?}\n\tlocation: {}:{}\n}}",
             $msg,
             file!(),
             line!()

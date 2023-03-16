@@ -99,7 +99,7 @@ pub fn create_pipelines(
         .attachments(&attachments)
         .build();
 
-    let states = [vk::DynamicState::VIEWPORT, vk::DynamicState::SCISSOR];
+    // let states = [vk::DynamicState::VIEWPORT, vk::DynamicState::SCISSOR];
 
     let viewports = [vk::Viewport {
         ..Default::default()
@@ -118,7 +118,7 @@ pub fn create_pipelines(
 
     let stages = [vs_state, fs_state];
 
-    let dynamic_state_info = vk::PipelineDynamicStateCreateInfo::builder().dynamic_states(&states);
+    // let dynamic_state_info = vk::PipelineDynamicStateCreateInfo::builder().dynamic_states(&states);
 
     let vert_inp_state = vk::PipelineVertexInputStateCreateInfo::builder().build();
 
@@ -130,7 +130,7 @@ pub fn create_pipelines(
         .color_blend_state(&col_blend_state)
         .viewport_state(&viewport_state)
         .layout(pipeline_layout)
-        .dynamic_state(&dynamic_state_info)
+        // .dynamic_state(&dynamic_state_info)
         .render_pass(render_pass)
         .subpass(0)
         .multisample_state(&multisample_state)
