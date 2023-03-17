@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use ash::vk;
 use winit::window::Window;
 
@@ -32,8 +34,9 @@ impl Renderer {
         })
     }
 
+    #[allow(unused)]
     #[inline]
-    pub fn draw(&mut self) -> Result<(), String> {
+    pub fn draw(&mut self, delta_time: &Duration) -> Result<(), String> {
         self.image_index = match self.get_img_index()? {
             Some(index) => index as usize,
             None => {

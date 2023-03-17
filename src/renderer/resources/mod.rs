@@ -249,62 +249,6 @@ pub fn create_fences(device: &ash::Device) -> Result<Vec<vk::Fence>, String> {
     Ok(fences)
 }
 
-// pub fn create_descriptor_set_layout(
-//     device: &ash::Device,
-// ) -> Result<vk::DescriptorSetLayout, String> {
-//     let control_points_binding = vk::DescriptorSetLayoutBinding::builder()
-//         .binding(0)
-//         .descriptor_type(vk::DescriptorType::STORAGE_BUFFER)
-//         .descriptor_count(1)
-//         .stage_flags(vk::ShaderStageFlags::VERTEX)
-//         .build();
-
-//     let bindings = [control_points_binding];
-//     let create_info = vk::DescriptorSetLayoutCreateInfo::builder()
-//         .bindings(&bindings)
-//         .build();
-
-//     let descriptor_set_layout = unsafe {
-//         device
-//             .create_descriptor_set_layout(&create_info, None)
-//             .map_err(|_| String::from("failed to create descriptor set layout"))?
-//     };
-
-//     Ok(descriptor_set_layout)
-// }
-
-// pub fn create_descriptor_pools(device: &ash::Device) -> Result<Vec<vk::DescriptorPool>, String> {
-//     let pool_size_1 = vk::DescriptorPoolSize {
-//         ty: vk::DescriptorType::UNIFORM_BUFFER,
-//         descriptor_count: 100,
-//     };
-
-//     let sizes = [pool_size_1];
-//     let create_info = vk::DescriptorPoolCreateInfo::builder()
-//         .max_sets(100)
-//         .pool_sizes(&sizes)
-//         .build();
-
-//     let mut descriptor_pools = Vec::with_capacity(MAX_FRAME_DRAWS as usize);
-
-//     for i in 0..MAX_FRAME_DRAWS {
-//         let pool = unsafe {
-//             device
-//                 .create_descriptor_pool(&create_info, None)
-//                 .map_err(|_| {
-//                     for &p in &descriptor_pools {
-//                         device.destroy_descriptor_pool(p, None);
-//                     }
-//                     format!("failed to create descriptor pool {}", i)
-//                 })?
-//         };
-
-//         descriptor_pools.push(pool);
-//     }
-
-//     Ok(descriptor_pools)
-// }
-
 pub fn create_command_pool(
     device: &ash::Device,
     queue_family: u32,

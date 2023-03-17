@@ -1,9 +1,12 @@
+use std::time::Instant;
+
 use renderer::Renderer;
 use winit::{
     event::{Event, WindowEvent},
     event_loop::ControlFlow,
 };
 
+pub mod engine;
 mod renderer;
 
 fn main() {
@@ -39,6 +42,9 @@ fn main() {
         }
     };
 
+    let mut start_time = Instant::now();
+    let mut visible = true;
+
     event_loop.run(move |event, _, control_flow| match event {
         Event::WindowEvent {
             event: WindowEvent::CloseRequested,
@@ -48,6 +54,12 @@ fn main() {
         }
 
         Event::MainEventsCleared => {
+            let delta_time = start_time.elapsed();
+
+            if !visible {
+                return;
+            }
+
             if renderer.rebuild_swapchain {
                 renderer.rebuild_swapchain = false;
                 if let Err(msg) = renderer.resize(&window) {
@@ -56,18 +68,28 @@ fn main() {
                 }
             }
 
-            if let Err(msg) = renderer.draw() {
+            if let Err(msg) = renderer.draw(&delta_time) {
                 msg!(error, msg);
                 *control_flow = ControlFlow::Exit;
                 return;
             }
+            start_time = Instant::now();
         }
 
         Event::WindowEvent {
-            event: WindowEvent::Resized(..),
+            event: WindowEvent::Resized(physical_size),
             ..
         } => {
             renderer.rebuild_swapchain = true;
+            if physical_size.width < 10 || physical_size.height < 10 {
+                visible = false;
+                msg!(
+                    info,
+                    "Window is currently not visible, will not render anything"
+                );
+            } else {
+                visible = true;
+            }
         }
         _ => {}
     });

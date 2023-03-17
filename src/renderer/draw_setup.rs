@@ -3,13 +3,10 @@ use ash::vk;
 use super::Renderer;
 
 impl Renderer {
-    // #[inline]
-    // pub fn record_command_buffer() {}
-
     #[inline]
     pub fn begin_render_pass(&self) {
         let clear_color = vk::ClearColorValue {
-            float32: [0.5f32, 0.5f32, 0.5f32, 1.0f32],
+            float32: [0.04f32, 0.01f32, 0.1f32, 1.0f32],
         };
         let clear_values = vec![vk::ClearValue { color: clear_color }];
 
@@ -121,6 +118,7 @@ impl Renderer {
             max_depth: 1.0f32,
         };
     }
+
     #[inline]
     pub fn submit(&self) -> Result<(), String> {
         let fence = self.data.fences[self.current_frame_index as usize];
